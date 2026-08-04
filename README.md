@@ -106,4 +106,5 @@ streamlit run 04_streamlit/app.py
 ## References
 - Open Library API — openlibrary.org/developers/api
 - The Movie Database (TMDb) API — developer.themoviedb.org
+  
 All analysis is for educational and portfolio purposes only.
