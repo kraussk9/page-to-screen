@@ -34,13 +34,15 @@ In other words: this project builds an open-source proxy for the trend-tracking 
 ## Datasets
 | Dataset | Source | Coverage | Used For |
 |---|---|---|---|
-| Sci-fi book publishing data | Kaggle — "Science Fiction Books (10,000+)" dataset, pre-split into 12 sub-genre files (dystopia, cyberpunk, space opera, hard sci-fi, etc.) | ~10,000 books, title/description/rating/genre level; last updated ~6 years ago, likely caps around 2019-2020 | Publishing-side trend analysis (core, historical) |
-| Recent publishing supplement | Kaggle — "Books Dataset (15K+ Books Across 100+ Categories)," filtered to the Science Fiction category and to years after the core dataset's cutoff (no overlap) | Sourced from Google Books API (scraped Nov 2024), sci-fi-tagged subset, non-overlapping recent years | Publishing-side trend analysis (recent years, filtered to avoid double-counting with the core dataset) |
+| Sci-fi book publishing data | Kaggle — "Science Fiction Books (10,000+)" dataset, pre-split into 12 sub-genre files (dystopia, cyberpunk, space opera, hard sci-fi, etc.) | ~14,700 books after cleaning; publication years 1950-2020 (scoped to this window — see Data Limitations) | Publishing-side trend analysis (core, historical) |
+| Recent publishing supplement | Manually compiled Hugo Award and Nebula Award Best Novel/Novella finalists (2021-2025), cross-referenced and deduplicated where a title appeared on both award lists | 100 titles, 2021-2025, winner/nominee status tagged | Publishing-side trend analysis (recent years, closes the gap left by the core dataset's cutoff) |
 | Sci-fi film & TV data | TMDb API (`/discover`, genre + keyword filters) | Multi-decade, film (genre 878) and TV (genre 10765) | Commissioning-side trend analysis |
 | Adaptation flag | TMDb "based on novel or book" keyword | Subset of film/TV dataset | Secondary lens: adapted vs. original |
  
 ## Data Limitations
-- **Publishing-side data is a static Kaggle snapshot, not a live API pull** (switched from Open Library after repeated API outages during data collection). The core dataset is pre-categorized into 12 sub-genre files, which is a real advantage for theme-level analysis, but it's a fixed point-in-time source last updated roughly six years ago — coverage likely caps around 2019-2020. The recent-years supplement comes from a different source (Google Books API scrape, Nov 2024) than the core dataset - filtered strictly to non-overlapping years to avoid double-counting, but still a schema/methodology seam worth flagging visually in charts.
+- **Publishing-side core data is a static Kaggle snapshot, not a live API pull** (switched from Open Library after repeated API outages during data collection). It's pre-categorized into 12 sub-genre files, a real advantage for theme-level analysis. Investigation of the data revealed the dataset is only reliably complete through **2020** — 2021 shows a sharp, artificial drop-off (27 books vs. 524 in 2019), indicating the scrape was cut off mid-year rather than reflecting a real decline in publishing. Analysis is scoped to 1950-2020 accordingly; books published before 1950 (a small number of genre-founding classics) were also excluded to align with the period where meaningful film/TV sci-fi data exists for comparison.
+- **The recent-years supplement (2021-2025) uses a different sampling method than the core dataset** — Hugo/Nebula Best Novel and Best Novella finalists, manually compiled, rather than a full publishing catalog. This measures award recognition, not raw publishing volume, and is flagged as a distinct measurement in charts rather than blended as if directly comparable. Where a title was a finalist for both awards, the earlier of the two award years was used (Hugo and Nebula ceremonies don't always align to the same eligibility year), and award attribution was combined rather than counted twice.
+- **The core dataset does not reliably distinguish novels from novellas** (Goodreads shelving doesn't enforce this distinction), so some shorter works are likely already present there. The Hugo/Nebula supplement explicitly includes Best Novella alongside Best Novel for the same reason — prioritizing genre-relevant published work over rigid format boundaries.
 - **TMDb TV genre tagging** is weaker than film genre tagging — TV results may be thinner than expected relative to film, which could skew the "commissioning" side toward film-heavy conclusions unless adjusted for.
 - **Adaptation sample size**: books-to-screen adaptations are a minority of total sci-fi film/TV output, so the adapted-vs-original lens is treated as a secondary cut, not a standalone statistical claim.
 - **World-event annotations** are added as narrative/visual context on relevant timelines, not as a modeled variable — no causal claim is being made about events driving thematic trends.
@@ -52,7 +54,7 @@ page-to-screen/
 ├── 01_data/
 │   ├── raw/                       <- raw source files
 │   │   ├── science_fiction_books/  <- 12 sub-genre Kaggle CSVs
-│   │   └── recent_books/          <- Google Books Comprehensive Dataset CSVs
+│   │   └── awards_finalists/       <- manually compiled Hugo/Nebula finalists CSV
 │   └── processed/                  <- cleaned, merged, theme-tagged datasets
 ├── 02_notebooks/                   <- data collection, cleaning, EDA notebooks
 ├── 03_visualizations/              <- exported charts
@@ -68,7 +70,7 @@ Data Collection → Cleaning & Theme Tagging → EDA → Comparative Analysis �
  
 | Step | Notebook/Script | Tool | Description |
 |---|---|---|---|
-| Data Collection | `01_load_kaggle_books.ipynb`, `02_collect_tmdb.ipynb` | Python / pandas (Kaggle CSVs), requests (TMDb) | Load sci-fi books from Kaggle (12 sub-genre CSVs + 15K Books dataset filtered to sci-fi and recent years) and pull sci-fi film/TV (TMDb) via API |
+| Data Collection | `01_load_kaggle_books.ipynb`, `02_collect_tmdb.ipynb` | Python / pandas (Kaggle CSVs), requests (TMDb) | Load sci-fi books from Kaggle (12 sub-genre CSVs), compile Hugo/Nebula finalists (2021-2025), and pull sci-fi film/TV (TMDb) via API |
 | Cleaning & Theme Tagging | `03_cleaning_wrangling.ipynb` | Python / pandas | Standardize schemas, reconcile Kaggle sub-genre folders vs. TMDb genres/keywords into a shared theme taxonomy, flag adaptations |
 | Database | — | SQL (SQLite) | Join publishing and commissioning tables by year and theme |
 | EDA & Comparative Analysis | `04_eda_comparison.ipynb` | Python / matplotlib / seaborn | Volume trends, theme-level lag/gap analysis, adaptation-lens cut |
@@ -102,8 +104,8 @@ cd page-to-screen
 # TMDb requires a free API key — see https://www.themoviedb.org/settings/api
 # Download the Kaggle "Science Fiction Books (10,000+)" dataset (12 CSVs)
 # and place the files in 01_data/raw/science_fiction_books/
-# Download the "Books Dataset - 15K+ Books Across 100+ Categories" Dataset
-# and place the files in 01_data/raw/recent_books/
+# The Hugo/Nebula finalists dataset (2021-2025) is manually compiled and
+# included in 01_data/processed/hugo_nebula_finalists.csv
  
 # 3. Run notebooks in order (01 -> 04)
 jupyter notebook
@@ -114,7 +116,8 @@ streamlit run 04_streamlit/app.py
  
 ## References
 - Kaggle - "Science Fiction Books (10,000+)" dataset - kaggle.com/datasets/tanguypledel/science-fiction-books-subgenres
-- Kaggle - "Books Dataset - 15K+ Books Across 100+ Categories" - kaggle.com/datasets/mihikaajayjadhav/books-dataset-15k-books-across-100-categories
+- The Hugo Awards - thehugoawards.org
+- The Nebula Awards - nebulas.sfwa.org
 - The Movie Database (TMDb) API - developer.themoviedb.org
   
 All analysis is for educational and portfolio purposes only.
