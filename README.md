@@ -5,7 +5,7 @@
 Keagan Krauss
  
 ## Overview
-Literary scouting - tracking which books are trending to predict what gets optioned for film and TV - is a real, growing function in the entertainment industry. This project builds an open-source proxy for that work: an end-to-end data analytics project comparing sci-fi publishing trends against streaming/film commissioning trends, using free public APIs (Open Library and TMDb) instead of proprietary industry data. It compares thematic trends across both industries on a shared timeline to identify lag, gaps, and divergence between what's being written and what's being greenlit.
+Literary scouting — tracking which books are trending to predict what gets optioned for film and TV - is a real, growing function in the entertainment industry. This project builds an open-source proxy for that work: an end-to-end data analytics project comparing sci-fi publishing trends against streaming/film commissioning trends, using public Kaggle sci-fi books datasets and the TMDb API instead of proprietary industry data. It compares thematic trends across both industries on a shared timeline to identify lag, gaps, and divergence between what's being written and what's being greenlit.
  
 ## Business Question
 **Is streaming/film sci-fi commissioning tracking what's being published in sci-fi literature, or running on its own agenda?**
@@ -21,7 +21,8 @@ This isn't a hypothetical exercise - it's a lightweight, open-data version of a 
 - **Streamers explicitly use cross-platform trend data - not just bestseller lists - to decide what to option.** Book sales, social trends, and search interest all factor into acquisition decisions. [readers.life, Mar 2026]
 - **Commercial platforms exist specifically to track this.** Services like Vitrina Business Network are built around helping industry professionals identify which books are trending and how to secure adaptation rights, including genre-specific and regional adaptation opportunities. [Vitrina, Nov 2024]
 - **The industry frames this as a data problem.** Streaming platforms are described as providing data-driven insights that help studios select books with strong viewer engagement potential. [Vitrina, Nov 2024]
-In other words: this project builds an open-source proxy for the trend-tracking work literary scouts and platforms like Vitrina already do commercially - using free public APIs instead of proprietary sales and engagement data. It won't match the precision of a paid industry tool, but it demonstrates the same underlying logic a streaming acquisitions team or literary scout would actually use.
+
+In other words: this project builds an open-source proxy for the trend-tracking work literary scouts and platforms like Vitrina already do commercially - using public datasets and a free API instead of proprietary sales and engagement data. It won't match the precision of a paid industry tool, but it demonstrates the same underlying logic a streaming acquisitions team or literary scout would actually use.
  
 ## Research Questions
 - Is overall sci-fi output volume (books vs. film/TV) rising, falling, or diverging over time?
@@ -33,25 +34,30 @@ In other words: this project builds an open-source proxy for the trend-tracking 
 ## Datasets
 | Dataset | Source | Coverage | Used For |
 |---|---|---|---|
-| Sci-fi book publishing data | Kaggle — "Science Fiction Books (10,000+)" dataset, pre-split into 12 sub-genre files (dystopia, cyberpunk, space opera, hard sci-fi, etc.) | ~10,000 books, title/description/rating/genre level | Publishing-side trend analysis |
+| Sci-fi book publishing data | Kaggle — "Science Fiction Books (10,000+)" dataset, pre-split into 12 sub-genre files (dystopia, cyberpunk, space opera, hard sci-fi, etc.) | ~10,000 books, title/description/rating/genre level; last updated ~6 years ago, likely caps around 2019-2020 | Publishing-side trend analysis (core, historical) |
+| Recent publishing supplement | Kaggle — Goodreads Choice Awards 2023 and 2024 datasets | Award nominee/winner-level, 2023-2024 | Publishing-side trend analysis (recent years only, flagged as a different sampling method — nominees/winners, not full publishing volume) |
 | Sci-fi film & TV data | TMDb API (`/discover`, genre + keyword filters) | Multi-decade, film (genre 878) and TV (genre 10765) | Commissioning-side trend analysis |
 | Adaptation flag | TMDb "based on novel or book" keyword | Subset of film/TV dataset | Secondary lens: adapted vs. original |
  
 ## Data Limitations
-- **Open Library subject tagging** is crowd-sourced and inconsistent below the top level — reliable for "is this sci-fi and when was it published," noisy for granular sub-themes (dystopia, first-contact, etc.). Sub-theme tagging will require an additional keyword/NLP pass rather than trusting raw subject tags.
+- **Publishing-side data is a static Kaggle snapshot, not a live API pull** (switched from Open Library after repeated API outages during data collection). The core dataset is pre-categorized into 12 sub-genre files, which is a real advantage for theme-level analysis, but it's a fixed point-in-time source last updated roughly six years ago — coverage likely caps around 2019-2020. To extend into recent years, this project supplements with Goodreads Choice Awards data (2023-2024), but that source measures something different — award nominees/winners, not full publishing volume — so recent years are visually flagged as a distinct measurement (e.g. a different line style) in charts rather than blended seamlessly with the historical trend.
 - **TMDb TV genre tagging** is weaker than film genre tagging — TV results may be thinner than expected relative to film, which could skew the "commissioning" side toward film-heavy conclusions unless adjusted for.
 - **Adaptation sample size**: books-to-screen adaptations are a minority of total sci-fi film/TV output, so the adapted-vs-original lens is treated as a secondary cut, not a standalone statistical claim.
 - **World-event annotations** are added as narrative/visual context on relevant timelines, not as a modeled variable — no causal claim is being made about events driving thematic trends.
+  
+
 ## Project Structure
 ```
 page-to-screen/
 ├── 01_data/
-│   ├── raw/            <- raw API pulls (Open Library, TMDb)
-│   └── processed/       <- cleaned, merged, theme-tagged datasets
-├── 02_notebooks/         <- data collection, cleaning, EDA notebooks
-├── 03_visualizations/    <- exported charts
-├── 04_streamlit/         <- Streamlit comparison dashboard
-├── src/                  <- reusable Python functions (API pulls, cleaning, theme tagging)
+│   ├── raw/                       <- raw source files
+│   │   ├── science_fiction_books/  <- 12 sub-genre Kaggle CSVs
+│   │   └── choice_awards/          <- 2023 + 2024 Goodreads Choice Awards CSVs
+│   └── processed/                  <- cleaned, merged, theme-tagged datasets
+├── 02_notebooks/                   <- data collection, cleaning, EDA notebooks
+├── 03_visualizations/              <- exported charts
+├── 04_streamlit/                   <- Streamlit comparison dashboard
+├── src/                            <- reusable Python functions (API pulls, cleaning, theme tagging)
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -62,8 +68,8 @@ Data Collection → Cleaning & Theme Tagging → EDA → Comparative Analysis �
  
 | Step | Notebook/Script | Tool | Description |
 |---|---|---|---|
-| Data Collection | `01_collect_openlibrary.ipynb`, `02_collect_tmdb.ipynb` | Python / requests | Pull sci-fi books (Open Library) and film/TV (TMDb) via API |
-| Cleaning & Theme Tagging | `03_cleaning_wrangling.ipynb` | Python / pandas | Standardize schemas, reconcile Open Library subjects vs. TMDb genres/keywords into a shared theme taxonomy, flag adaptations |
+| Data Collection | `01_load_kaggle_books.ipynb`, `02_collect_tmdb.ipynb` | Python / pandas (Kaggle CSVs), requests (TMDb) | Load sci-fi books from Kaggle (12 sub-genre CSVs + 2023/2024 Goodreads Choice Awards supplement) and pull sci-fi film/TV (TMDb) via API |
+| Cleaning & Theme Tagging | `03_cleaning_wrangling.ipynb` | Python / pandas | Standardize schemas, reconcile Kaggle sub-genre folders vs. TMDb genres/keywords into a shared theme taxonomy, flag adaptations |
 | Database | — | SQL (SQLite) | Join publishing and commissioning tables by year and theme |
 | EDA & Comparative Analysis | `04_eda_comparison.ipynb` | Python / matplotlib / seaborn | Volume trends, theme-level lag/gap analysis, adaptation-lens cut |
 | Dashboard | `app.py` | Streamlit | Interactive theme-filterable comparison of publishing vs. commissioning trends over time |
@@ -92,9 +98,12 @@ pip install -r requirements.txt
 git clone https://github.com/[your-username]/page-to-screen.git
 cd page-to-screen
  
-# 2. Add API keys
+# 2. Add API keys and download data
 # TMDb requires a free API key — see https://www.themoviedb.org/settings/api
-# Open Library requires no key
+# Download the Kaggle "Science Fiction Books (10,000+)" dataset (12 CSVs)
+# and place the files in 01_data/raw/science_fiction_books/
+# Download the Goodreads Choice Awards 2023 and 2024 datasets
+# and place the files in 01_data/raw/choice_awards/
  
 # 3. Run notebooks in order (01 -> 04)
 jupyter notebook
@@ -104,7 +113,9 @@ streamlit run 04_streamlit/app.py
 ```
  
 ## References
-- Open Library API — openlibrary.org/developers/api
+- Kaggle — "Science Fiction Books (10,000+)" dataset — kaggle.com/datasets/tanguypledel/science-fiction-books-subgenres
+- Kaggle — Goodreads Choice Awards 2024 — kaggle.com/datasets/krisbruurs/goodreads-choice-awards-2024-books
+- Kaggle — Goodreads Choice Awards 2023 — kaggle.com/datasets/brzy56/goodreads-choice-awards-2023-best-books-of-2023
 - The Movie Database (TMDb) API — developer.themoviedb.org
   
 All analysis is for educational and portfolio purposes only.
