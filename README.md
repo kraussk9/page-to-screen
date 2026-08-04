@@ -52,7 +52,7 @@ page-to-screen/
 ├── 01_data/
 │   ├── raw/                       <- raw source files
 │   │   ├── science_fiction_books/  <- 12 sub-genre Kaggle CSVs
-│   │   └── choice_awards/          <- 2023 + 2024 Goodreads Choice Awards CSVs
+│   │   └── recent_books/          <- Google Books Comprehensive Dataset CSVs
 │   └── processed/                  <- cleaned, merged, theme-tagged datasets
 ├── 02_notebooks/                   <- data collection, cleaning, EDA notebooks
 ├── 03_visualizations/              <- exported charts
@@ -68,7 +68,7 @@ Data Collection → Cleaning & Theme Tagging → EDA → Comparative Analysis �
  
 | Step | Notebook/Script | Tool | Description |
 |---|---|---|---|
-| Data Collection | `01_load_kaggle_books.ipynb`, `02_collect_tmdb.ipynb` | Python / pandas (Kaggle CSVs), requests (TMDb) | Load sci-fi books from Kaggle (12 sub-genre CSVs + 15K Books dataset, filtered to sci-fi + recent years and pull sci-fi film/TV (TMDb) via API |
+| Data Collection | `01_load_kaggle_books.ipynb`, `02_collect_tmdb.ipynb` | Python / pandas (Kaggle CSVs), requests (TMDb) | Load sci-fi books from Kaggle (12 sub-genre CSVs + 15K Books dataset filtered to sci-fi and recent years) and pull sci-fi film/TV (TMDb) via API |
 | Cleaning & Theme Tagging | `03_cleaning_wrangling.ipynb` | Python / pandas | Standardize schemas, reconcile Kaggle sub-genre folders vs. TMDb genres/keywords into a shared theme taxonomy, flag adaptations |
 | Database | — | SQL (SQLite) | Join publishing and commissioning tables by year and theme |
 | EDA & Comparative Analysis | `04_eda_comparison.ipynb` | Python / matplotlib / seaborn | Volume trends, theme-level lag/gap analysis, adaptation-lens cut |
@@ -102,8 +102,8 @@ cd page-to-screen
 # TMDb requires a free API key — see https://www.themoviedb.org/settings/api
 # Download the Kaggle "Science Fiction Books (10,000+)" dataset (12 CSVs)
 # and place the files in 01_data/raw/science_fiction_books/
-# Download the Google Books Comprehensive Dataset
-# and place the files in 01_data/raw/google_books_comprehensive_dataset/
+# Download the "Books Dataset - 15K+ Books Across 100+ Categories" Dataset
+# and place the files in 01_data/raw/recent_books/
  
 # 3. Run notebooks in order (01 -> 04)
 jupyter notebook
@@ -114,7 +114,7 @@ streamlit run 04_streamlit/app.py
  
 ## References
 - Kaggle - "Science Fiction Books (10,000+)" dataset - kaggle.com/datasets/tanguypledel/science-fiction-books-subgenres
-- Kaggle - Google Books Comprehensive Dataset - kaggle.com/datasets/mihikaajayjadhav/books-dataset-15k-books-across-100-categories
+- Kaggle - "Books Dataset - 15K+ Books Across 100+ Categories" - kaggle.com/datasets/mihikaajayjadhav/books-dataset-15k-books-across-100-categories
 - The Movie Database (TMDb) API - developer.themoviedb.org
   
 All analysis is for educational and portfolio purposes only.
