@@ -33,7 +33,7 @@ In other words: this project builds an open-source proxy for the trend-tracking 
 ## Datasets
 | Dataset | Source | Coverage | Used For |
 |---|---|---|---|
-| Sci-fi book publishing data | Open Library API (subjects endpoint) | Multi-decade, title/author/year/subject level | Publishing-side trend analysis |
+| Sci-fi book publishing data | Kaggle — "Science Fiction Books (10,000+)" dataset, pre-split into 12 sub-genre files (dystopia, cyberpunk, space opera, hard sci-fi, etc.) | ~10,000 books, title/description/rating/genre level | Publishing-side trend analysis |
 | Sci-fi film & TV data | TMDb API (`/discover`, genre + keyword filters) | Multi-decade, film (genre 878) and TV (genre 10765) | Commissioning-side trend analysis |
 | Adaptation flag | TMDb "based on novel or book" keyword | Subset of film/TV dataset | Secondary lens: adapted vs. original |
  
