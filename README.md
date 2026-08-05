@@ -45,7 +45,8 @@ In other words: this project builds an open-source proxy for the trend-tracking 
 - **The core dataset does not reliably distinguish novels from novellas** (Goodreads shelving doesn't enforce this distinction), so some shorter works are likely already present there. The Hugo/Nebula supplement explicitly includes Best Novella alongside Best Novel for the same reason — prioritizing genre-relevant published work over rigid format boundaries.
 - **TMDb TV genre tagging** is weaker than film genre tagging — TV results may be thinner than expected relative to film, which could skew the "commissioning" side toward film-heavy conclusions unless adjusted for.
 - **Adaptation sample size**: books-to-screen adaptations are a minority of total sci-fi film/TV output, so the adapted-vs-original lens is treated as a secondary cut, not a standalone statistical claim.
-- **World-event annotations** are added as narrative/visual context on relevant timelines, not as a modeled variable — no causal claim is being made about events driving thematic trends.
+- **World-event annotations** are added as narrative/visual context on relevant timelines, not as a modeled variable - no causal claim is being made about events driving thematic trends.
+- **TMDb's Science Fiction / Sci-Fi & Fantasy genre tags** are broader than the book dataset's sub-genre taxonomy - they include superhero franchises (Marvel), kaiju/monster films, and supernatural horror, none of which have a corresponding book sub-genre in this project's scope. Roughly 55% of the vote-filtered commissioning dataset falls into this broader-genre-but-unmapped-theme category. Total-volume comparisons use the full dataset; theme-level comparisons are scoped to the ~45% of titles matching one of the 11 mapped content themes.
   
 
 ## Project Structure
