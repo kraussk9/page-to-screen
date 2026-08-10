@@ -29,29 +29,29 @@ hero_img_b64 = get_base64_image("04_streamlit/blade-runner-1-867x362.jpg")
 
 st.markdown('''
 <style>
+.block-container {
+    padding-top: 3.5rem;
+}
 .stTabs [data-baseweb="tab-list"] {
-    flex-wrap: wrap;
     gap: 6px;
-    row-gap: 8px;
-}
-.stTabs [data-baseweb="tab-highlight"] {
-    display: none;
-}
-.stTabs [data-baseweb="tab-border"] {
-    display: none;
 }
 .stTabs [data-baseweb="tab"] {
-    background: transparent;
-    border: 1px solid #AEB6C2;
-    border-radius: 8px;
+    background: transparent !important;
+    border: none !important;
     padding: 8px 14px;
     color: #F5F7FF;
 }
+.stTabs [data-baseweb="tab"]:hover {
+    color: #81EC86 !important;
+}
 .stTabs [aria-selected="true"] {
-    background: #81EC86;
-    border: 1px solid #81EC86;
-    color: #06070A;
+    background: transparent !important;
+    color: #81EC86 !important;
     font-weight: bold;
+    border: none !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: #81EC86 !important;
 }
 [data-testid="stMetricDelta"] {
     color: #09AB3B !important;
@@ -255,29 +255,32 @@ THEME_FINDINGS = {
 
 def build_chart(theme_choice):
     if theme_choice == "Total":
-        pub_scoped = (
+        pub_raw = (
             publishing_yearly_theme_counts[publishing_yearly_theme_counts["Year_published"] <= 2020]
-            .groupby("Year_published")["book_count"].sum().reset_index()
+            .groupby("Year_published")["book_count"].sum()
         )
-        comm_full = (
-            yearly_commissioning_theme_counts
-            .groupby("Year_released")["title_count"].sum().reset_index()
-        )
+        comm_raw = yearly_commissioning_theme_counts.groupby("Year_released")["title_count"].sum()
         chart_title = "Total, 1950-2025"
         max_books = TOTAL_MAX_BOOKS
         max_titles = TOTAL_MAX_TITLES
     else:
-        pub_scoped = publishing_yearly_theme_counts[
+        pub_raw = publishing_yearly_theme_counts[
             (publishing_yearly_theme_counts["theme"] == theme_choice)
             & (publishing_yearly_theme_counts["Year_published"] <= 2020)
-        ][["Year_published", "book_count"]]
-        comm_full = yearly_commissioning_theme_counts[
+        ].groupby("Year_published")["book_count"].sum()
+        comm_raw = yearly_commissioning_theme_counts[
             yearly_commissioning_theme_counts["theme"] == theme_choice
-        ][["Year_released", "title_count"]]
+        ].groupby("Year_released")["title_count"].sum()
         theme_label = theme_choice.replace("_", " ").title()
         chart_title = theme_label + ", 1950-2025"
         max_books = THEME_MAX_BOOKS
         max_titles = THEME_MAX_TITLES
+
+    pub_scoped = pub_raw.reindex(range(1950, 2021), fill_value=0).reset_index()
+    pub_scoped.columns = ["Year_published", "book_count"]
+
+    comm_full = comm_raw.reindex(range(1950, 2026), fill_value=0).reset_index()
+    comm_full.columns = ["Year_released", "title_count"]
 
     comm_comparable = comm_full[comm_full["Year_released"] <= 2020]
     comm_extended = comm_full[comm_full["Year_released"] >= 2020]
@@ -291,6 +294,7 @@ def build_chart(theme_choice):
     ax1.set_xlabel("Year", color=HOLOGRAPHIC_PEARL)
     ax1.set_ylabel("Books Published", color=HOLOGRAPHIC_PEARL)
     ax1.set_ylim(0, max_books * 1.05)
+    ax1.set_xlim(1950, 2025)
     ax1.tick_params(axis="y", labelcolor=HOLOGRAPHIC_PEARL)
     ax1.tick_params(axis="x", labelcolor=HOLOGRAPHIC_PEARL)
     ax1.spines["bottom"].set_color(TITANIUM_FOG)
