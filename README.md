@@ -6,6 +6,8 @@ Keagan Krauss
 
 ## Live Dashboard: [page-to-screen.streamlit.app](https://page-to-screen.streamlit.app/)
 
+## Presentation: https://canva.link/page-to-screen
+
 ## Overview
 Literary scouting - tracking which books are trending to predict what gets optioned for film and TV - is a real, growing function in the entertainment industry. This project builds an open-source proxy for that work: an end-to-end data analytics project comparing sci-fi publishing trends against streaming/film commissioning trends, using public Kaggle book datasets and the TMDb API instead of proprietary industry data. It compares thematic trends across both industries on a shared timeline to identify lag, gaps, and divergence between what's being written and what's being greenlit.
 
